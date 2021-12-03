@@ -1,21 +1,15 @@
-# picgo-plugin-gitee
+# picgo-plugin-gitea
 
-PicGo Uploader For Gitee
-
-### Install
-
-```bash
-npm i picgo-plugin-gitee
-```
+PicGo Uploader For Gitea
 
 ### Usage
 
 #### input your config
-- owner: gitee project's owner name
-- repo: gitee project repo
-- token: gitee's api token
+- owner: gitea project's owner name
+- repo: gitea project repo
+- token: gitea's api token
 - path: img path in response json (eg:url or data.url)
-- message: gitee commit 
+- message: gitea commit 
 
 #### init your remote repo
 - create git repo?
@@ -43,5 +37,3 @@ git push -u origin master
 
 - [x] trim / delimiter
 
-
-**gitee文件大小有1mb限制, 所以超过1mb的文件无法通过外链获取**

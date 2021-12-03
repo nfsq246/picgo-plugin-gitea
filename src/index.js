@@ -1,5 +1,5 @@
-const uploadedName = "gitee";
-const domain = "https://gitee.com";
+const uploadedName = "gitea";
+const domain = "https://git.yefengx.top";
 const urlParser = require("url");
 const defaultMsg = "picgo commit";
 
@@ -7,7 +7,7 @@ module.exports = (ctx) => {
   const register = () => {
     ctx.helper.uploader.register(uploadedName, {
       handle,
-      name: "Gitee图床",
+      name: "Gitea图床",
       config: config,
     });
 
@@ -22,21 +22,21 @@ module.exports = (ctx) => {
   };
 
   const getUserConfig = function () {
-    let userConfig = ctx.getConfig("picBed.gitee");
+    let userConfig = ctx.getConfig("picBed.gitea");
 
     if (!userConfig) {
       throw new Error("Can't find uploader config");
     }
 
     userConfig["baseUrl"] =
-      domain + "/api/v5/repos/" + userConfig.owner + "/" + userConfig.repo;
+      domain + "/api/v1/repos/" + userConfig.owner + "/" + userConfig.repo;
     userConfig["previewUrl"] =
       domain +
       "/" +
       userConfig.owner +
       "/" +
       userConfig.repo +
-      "/raw/master" +
+      "/raw/branch/main" +
       formatConfigPath(userConfig);
 
     userConfig["message"] = userConfig.message || defaultMsg;
@@ -135,12 +135,16 @@ module.exports = (ctx) => {
         `${filepath}` +
         `?access_token=${config.token}` +
         `&message=${config.message}` +
-        `&sha=${sha}`;
+        `&sha=${sha}` +
+        `&signoff=true`;
       ctx.log.info("[删除操作]当前删除地址：" + url);
+
+      ctx.log.info("删除测试");
+      let headerplus = headers + "Authorization: token ${config.token}";
       let opts = {
         method: "DELETE",
         url: encodeURI(url),
-        headers: headers,
+        headers: headerplus,
       };
       ctx.log.info("[删除操作]当前参数" + JSON.stringify(opts));
       // log request params
@@ -157,8 +161,8 @@ module.exports = (ctx) => {
   const getFilePath = function (url) {
     let pathInfo = urlParser.parse(url);
     let baseUrl = pathInfo.protocol + "//" + pathInfo.host;
-    let urlStr = url.replace(baseUrl, baseUrl + "/api/v5/repos");
-    return urlStr.replace("raw/master", "contents");
+    let urlStr = url.replace(baseUrl, baseUrl + "/api/v1/repos");
+    return urlStr.replace("raw/branch/main", "contents");
   };
 
   const getSha = async function (filepath) {
@@ -183,7 +187,7 @@ module.exports = (ctx) => {
   };
 
   const config = (ctx) => {
-    let userConfig = ctx.getConfig("picBed.gitee");
+    let userConfig = ctx.getConfig("picBed.gitea");
     if (!userConfig) {
       userConfig = {};
     }
@@ -239,7 +243,7 @@ module.exports = (ctx) => {
     ];
   };
   return {
-    uploader: "gitee",
+    uploader: "gitea",
     register,
   };
 };
