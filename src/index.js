@@ -102,6 +102,7 @@ module.exports = (ctx) => {
       message: config.message || defaultMsg,
     };
     const opts = {
+      rejectUnauthorized: false,
       method: "POST",
       url: encodeURI(url),
       headers: headers,
@@ -140,18 +141,20 @@ module.exports = (ctx) => {
         `&sha=${sha}` +
         `&signoff=true`;
       ctx.log.info("[删除操作]当前删除地址：" + url);
-
-      ctx.log.info("删除测试");
       let headerplus = headers + "Authorization: token ${config.token}";
       let opts = {
+        rejectUnauthorized: false,
         method: "DELETE",
         url: encodeURI(url),
         headers: headerplus,
       };
       ctx.log.info("[删除操作]当前参数" + JSON.stringify(opts));
-      // log request params
-      response = await ctx.request(opts);
-      ctx.log.info(response);
+      try {
+        await ctx.request(opts);
+      } catch (e) {
+        ctx.log.info(e);
+        fail.push(each.fileName);
+      }
     }
 
     ctx.emit("notification", {
@@ -182,6 +185,7 @@ module.exports = (ctx) => {
     let url = `${filepath}` + `?access_token=${config.token}`;
 
     const opts = {
+      rejectUnauthorized: false,
       method: "GET",
       url: encodeURI(url),
       headers: headers,
