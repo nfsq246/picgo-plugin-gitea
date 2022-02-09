@@ -1,6 +1,5 @@
 const uploadedName = "gitea";
-const domain = "https://git.yefengx.top";
-const urlParser = require("url");
+const defauleBranch = "master"
 const defaultMsg = "picgo commit";
 
 module.exports = (ctx) => {
@@ -29,14 +28,15 @@ module.exports = (ctx) => {
     }
 
     userConfig["baseUrl"] =
-      domain + "/api/v1/repos/" + userConfig.owner + "/" + userConfig.repo;
+      userConfig.url + "/api/v1/repos/" + userConfig.owner + "/" + userConfig.repo;
     userConfig["previewUrl"] =
-      domain +
+      userConfig.url +
       "/" +
       userConfig.owner +
       "/" +
       userConfig.repo +
-      "/raw/branch/main" +
+      "/raw/branch/" +
+      formatConfigBranch(userConfig) +
       formatConfigPath(userConfig);
 
     userConfig["message"] = userConfig.message || defaultMsg;
@@ -126,7 +126,8 @@ module.exports = (ctx) => {
 
     for (let i = 0; i < rms.length; i++) {
       const each = rms[i];
-      let filepath = getFilePath(each.imgUrl);
+      let urlpath = getFilePath(each.imgUrl);
+      let filepath = urlpath[0];
       let sha = await getSha(filepath).catch((err) => {
         ctx.log.info("[删除操作]获取sha值：" + JSON.stringify(err));
       });
@@ -135,6 +136,7 @@ module.exports = (ctx) => {
         `${filepath}` +
         `?access_token=${config.token}` +
         `&message=${config.message}` +
+        `&branch=${urlpath[1]}` +
         `&sha=${sha}` +
         `&signoff=true`;
       ctx.log.info("[删除操作]当前删除地址：" + url);
@@ -158,12 +160,21 @@ module.exports = (ctx) => {
     });
   };
 
+
   const getFilePath = function (url) {
-    let pathInfo = urlParser.parse(url);
-    let baseUrl = pathInfo.protocol + "//" + pathInfo.host;
-    let urlStr = url.replace(baseUrl, baseUrl + "/api/v1/repos");
-    return urlStr.replace("raw/branch/main", "contents");
+    let host = url.substring(0, url.indexOf("/raw/branch"));
+    host = host.substring(0, host.lastIndexOf("/"));
+    host = host.substring(0, host.lastIndexOf("/"));
+    let urlStr = url.replace(host, host + "/api/v1/repos");
+    let branch = url.substring(url.indexOf("/raw/branch/") + 12);
+    branch = branch.substring(0, branch.indexOf("/"));
+
+    let urlpath = new Array();
+    urlpath[0] = urlStr.replace("raw/branch/" + branch, "contents");
+    urlpath[1] = branch;
+    return urlpath;
   };
+
 
   const getSha = async function (filepath) {
     let config = getUserConfig();
@@ -185,21 +196,22 @@ module.exports = (ctx) => {
   const formatConfigPath = function (userConfig) {
     return userConfig.path ? "/" + userConfig.path : "";
   };
-
+  const formatConfigBranch = function (userConfig) {
+    return userConfig.branch ? "/" + userConfig.path : defauleBranch;
+  };
   const config = (ctx) => {
     let userConfig = ctx.getConfig("picBed.gitea");
     if (!userConfig) {
       userConfig = {};
     }
-    return [
-      // {
-      //   name: 'url',
-      //   type: 'input',
-      //   default: userConfig.url,
-      //   required: true,
-      //   message: 'https://gitee.com',
-      //   alias: 'url'
-      // },
+    return [{
+        name: 'url',
+        type: 'input',
+        default: userConfig.url,
+        required: true,
+        message: 'https://gitea.com',
+        alias: 'url'
+      },
       {
         name: "owner",
         type: "input",
@@ -215,6 +227,14 @@ module.exports = (ctx) => {
         required: true,
         message: "repo",
         alias: "repo",
+      },
+      {
+        name: "branch",
+        type: "input",
+        default: userConfig.branch,
+        required: false,
+        message: "branch;默认master",
+        alias: "branch",
       },
       {
         name: "path",
