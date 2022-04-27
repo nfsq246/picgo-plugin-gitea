@@ -1,6 +1,6 @@
 {
   "name": "picgo-plugin-gitea",
-  "version": "0.1",
+  "version": "0.1.8",
   "description": "picgo uploader for gitea",
   "main": "src/index.js",
   "publishConfig": {
